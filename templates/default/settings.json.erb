@@ -19,19 +19,6 @@
   // Set this to a secure string at least 10 characters long.  Do not share this value.
   "sessionKey" : "<%= @session_key %>",
 
-  <% if :ssl_enabled == true -%>
-  // Node native SSL support
-  // this is disabled by default
-  //
-  // make sure to have the minimum and correct file access permissions set
-  // so that the Etherpad server can access them
-  "ssl" : {
-            "key" : "<%= @ssl_key_path %>",
-            "cert" : "<%= @ssl_cert_path %>"
-          },
-
-  <% end -%>
-
   //The Type of the database. You can choose between dirty, postgres, sqlite and mysql
   //You shouldn't use "dirty" for for anything else than testing or development
   "dbType" : "<%= @db_type %>",

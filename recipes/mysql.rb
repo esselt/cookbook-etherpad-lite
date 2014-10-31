@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: etherpad-lite
-# Recipe:: default
+# Recipe:: mysql
 #
 # Copyright 2014, HiST AITeL
 #
@@ -17,6 +17,10 @@
 # limitations under the License.
 #
 
-%w(apache mysql nodejs etherpad).each do |recipe|
-  include_recipe "etherpad-lite::#{recipe}"
-end
+params = node['etherpad-lite'].dup
+node.default['lamp-stack']['websites'] = {
+  params['db_name'] => params['db_password']
+}
+node.override['etherpad-lite']['db_user'] = params['db_name']
+
+include_recipe 'lamp-stack::mysql'

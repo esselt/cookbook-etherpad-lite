@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: etherpad-lite
-# Recipe:: default
+# Recipe:: apahce
 #
 # Copyright 2014, HiST AITeL
 #
@@ -17,6 +17,22 @@
 # limitations under the License.
 #
 
-%w(apache mysql nodejs etherpad).each do |recipe|
-  include_recipe "etherpad-lite::#{recipe}"
-end
+params = node['etherpad-lite'].dup
+variables = {
+  'vhost_template'  => 'apache.vhost.erb',
+  'vhost_cookbook'  => 'etherpad-lite',
+
+  'server_name'     => params['domain'],
+  'server_ip'       => params['ip_address'],
+  'logroot'         => params['logs_dir'],
+  'other'           => {
+    'internal_port' => params['port_number']
+  }
+}
+
+node.default['lamp-stack']['websites'] = {
+  params['domain'] => variables
+}
+
+include_recipe 'lamp-stack::apache'
+include_recipe 'apache2::mod_proxy_http'

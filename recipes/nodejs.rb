@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: etherpad-lite
-# Recipe:: default
+# Recipe:: nodejs
 #
 # Copyright 2014, HiST AITeL
 #
@@ -17,6 +17,5 @@
 # limitations under the License.
 #
 
-%w(apache mysql nodejs etherpad).each do |recipe|
-  include_recipe "etherpad-lite::#{recipe}"
-end
+node.set['nodejs']['install_method'] = 'package'
+include_recipe "nodejs"
