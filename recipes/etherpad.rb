@@ -39,18 +39,20 @@ user 'etherpad' do
   comment 'Service user for Etherpad'
 end
 
-directory node['etherpad-lite']['etherpad']['install_dir'] do
-  owner 'etherpad'
-  group 'etherpad'
-  mode 00640
-end
-
 git node['etherpad-lite']['etherpad']['install_dir'] do
   repository node['etherpad-lite']['etherpad']['git_repo']
   user 'etherpad'
   revision node['etherpad-lite']['etherpad']['revision']
   action :sync
+  notifies :create, 'directory[etherpad-install-dir]'
   notifies :restart, 'service[etherpad]'
+end
+
+directory 'etherpad-install-dir' do
+  path node['etherpad-lite']['etherpad']['install_dir']
+  owner 'etherpad'
+  group 'etherpad'
+  mode 00640
 end
 
 template "#{node['etherpad-lite']['etherpad']['install_dir']}/settings.json" do
