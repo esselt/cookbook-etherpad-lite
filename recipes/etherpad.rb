@@ -41,11 +41,18 @@ end
 
 git node['etherpad-lite']['etherpad']['install_dir'] do
   repository node['etherpad-lite']['etherpad']['git_repo']
-  user 'etherpad'
+  user 'root'
   revision node['etherpad-lite']['etherpad']['revision']
   action :sync
+  notifies :run, 'execute[etherpad-fix-permission]'
   notifies :create, 'directory[etherpad-install-dir]'
   notifies :restart, 'service[etherpad]'
+end
+
+execute 'etherpad-fix-permission' do
+  command 'chown etherpad:etherpad -R *'
+  cwd node['etherpad-lite']['etherpad']['install_dir']
+  action :nothing
 end
 
 directory 'etherpad-install-dir' do
