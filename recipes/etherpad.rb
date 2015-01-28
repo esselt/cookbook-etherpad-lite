@@ -53,7 +53,7 @@ directory 'etherpad-install-dir' do
   path node['etherpad-lite']['etherpad']['install_dir']
   owner 'etherpad'
   group 'etherpad'
-  mode 00640
+  mode 00755
 end
 
 template "#{node['etherpad-lite']['etherpad']['install_dir']}/settings.json" do
