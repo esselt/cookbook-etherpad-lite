@@ -1,81 +1,81 @@
 /*
-  This file must be valid JSON. But comments are allowed
-
-  Please edit settings.json, not settings.json.template
+  This file is maintained with Chef for <%= node['fqdn'] %>
 */
 {
   // Name your instance!
-  "title": "<%= @title %>",
+  "title": "<%= @etherpad['title'] %>",
 
   // favicon default name
   // alternatively, set up a fully specified Url to your own favicon
-  "favicon": "<%= @favicon_url %>",
+  "favicon": "favicon.ico",
   
   //IP and port which etherpad should bind at
-  "ip": "<%= @ip_address %>",
-  "port" : <%= @port_number %>,
+  "ip": "0.0.0.0",
+  "port" : <%= @etherpad['port'].to_s %>,
 
   // Session Key, used for reconnecting user sessions
   // Set this to a secure string at least 10 characters long.  Do not share this value.
-  "sessionKey" : "<%= @session_key %>",
+  "sessionKey" : "<%= @etherpad['session_key'] %>",
 
   //The Type of the database. You can choose between dirty, postgres, sqlite and mysql
   //You shouldn't use "dirty" for for anything else than testing or development
-  "dbType" : "<%= @db_type %>",
+  "dbType" : "mysql",
   //the database specific settings
    "dbSettings" : {
-                    "user" : "<%= @db_user %>",
-                    "host" : "<%= @db_host %>",
-                    "password": "<%= @db_password %>",
-                    "database": "<%= @db_name %>"
+                    "user" : "<%= @mysql['user'] %>",
+                    "host" : "<%= @mysql['host'] %>",
+                    "password": "<%= @mysql['password'] %>",
+                    "database": "<%= @mysql['database'] %>"
                   },
   
-  //Logging configuration. See log4js documentation for further information
-  // https://github.com/nomiddlename/log4js-node
-  "logconfig" :
-{ "appenders": [
-{ "type": "console" }
-] },
-  
   //the default text of a pad
-  "defaultPadText" : "<%= @default_text %>",
+  "defaultPadText" : "<%= @etherpad['default_text'] %>",
   
   /* Users must have a session to access pads. This effectively allows only group pads to be accessed. */
-  "requireSession" : <%= @require_session %>,
+  "requireSession" : <%= @etherpad['group_only'].to_s %>,
 
   /* Users may edit pads but not create new ones. Pad creation is only via the API. This applies both to group pads and regular pads. */
-  "editOnly" : <%= @edit_only %>,
+  "editOnly" : false,
   
   /* if true, all css & js will be minified before sending to the client. This will improve the loading performance massivly,
      but makes it impossible to debug the javascript/css */
-  "minify" : <%= @minify %>,
+  "minify" : true,
 
   /* How long may clients use served javascript code (in seconds)? Without versioning this
      may cause problems during deployment. Set to 0 to disable caching */
-  "maxAge" : <%= @max_age %>, // 60 * 60 * 6 = 6 hours
+  "maxAge" : <%= @etherpad['cache_age'].to_s %>, // 60 * 60 * 6 = 6 hours
   
   /* This is the path to the Abiword executable. Setting it to null, disables abiword.
      Abiword is needed to advanced import/export features of pads*/
-  "abiword" : "<%= @abiword_path %>",
+  "abiword" : "<%= @etherpad['abiword_path'] %>",
  
   /* This setting is used if you require authentication of all users.
      Note: /admin always requires authentication. */
-  "requireAuthentication": <%= @require_authentication %>,
+  "requireAuthentication": <%= @etherpad['force_authentication'].to_s %>,
 
   /* Require authorization by a module, or a user with is_admin set, see below. */
-  "requireAuthorization": <%= @require_authorization %>,
+  "requireAuthorization": <%= @etherpad['force_authorization'] %>,
 
+  <% if @etherpad['enable_admin'] -%>
   /* Users for basic authentication. is_admin = true gives access to /admin.
      If you do not uncomment this, /admin will not be available! */
   "users": {
-    "admin": {
-      "password": "<%= @admin_password %>",
+    "<%= @etherpad['admin_user'] %>": {
+      "password": "<%= @etherpad['admin_pass'] %>",
       "is_admin": true
     }
   },
+  <% end -%>
 
   /* The log level we are using, can be: DEBUG, INFO, WARN, ERROR */
-  "loglevel": "<%= @log_level %>",
+  "loglevel": "<%= @etherpad['log_level'] %>",
+
+  //Logging configuration. See log4js documentation for further information
+  // https://github.com/nomiddlename/log4js-node
+  // You can add as many appenders as you want here:
+  "logconfig" : {
+    "appenders": [{ "type": "console" }]
+  },
 
   // restrict socket.io transport methods
   "socketTransportProtocols" : ["xhr-polling", "jsonp-polling", "htmlfile"]

@@ -2,13 +2,17 @@
 
 This file is used to list changes made in each version of etherpad-lite.
 
-## 0.1.1:
+1.0.0
+-----
+- [Boye Holden] - Forked from OpenWatch and completely rewritten to match our configurations
 
-Forked by OpenWatch to include variables in the template and only support etherpad-lite.
+0.1.1
+-----
+- [OpenWatch] - Forked by OpenWatch to include variables in the template and only support etherpad-lite.
 
-## 0.1.0:
-
-* Initial release of etherpad-lite
+0.1.0
+-----
+- [computerlyrik] - Initial release of etherpad-lite
 
 - - -
 Check the [Markdown Syntax Guide](http://daringfireball.net/projects/markdown/syntax) for help with Markdown.

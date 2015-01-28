@@ -1,0 +1,57 @@
+<VirtualHost *:<%= @params['ssl_enable'] ? '443' : '80' %>>
+    ServerName <%= @params['domain'] || node['fqdn'] %>
+
+    <Location /server-status>
+        SetHandler server-status
+
+        Order Deny,Allow
+        Deny from all
+        Allow from 127.0.0.1
+    </Location>
+
+    <% if @params[:ssl_enable] -%>
+    SSLEngine On
+    SSLProxyEngine On
+    SSLCertificateFile <%= @params[:ssl_cert] %>
+    SSLCertificateKeyFile <%= @params[:ssl_key] %>
+    <% end -%>
+
+    <Proxy *>
+        AddDefaultCharset off
+        Require all granted
+    </Proxy>
+
+    ProxyVia On
+    ProxyRequests Off
+    ProxyPass / http://<%= @params['host'] %>:<%= @params['port'] %>/
+    ProxyPassReverse / http://<%= @params['host'] %>:<%= @params['port'] %>/
+    ProxyPreserveHost on
+
+    RewriteEngine On
+    RewriteRule /p/*$ http://<%= @params['domain'] || node['fqdn'] %>/ [NC,L]
+    RewriteCond %{REQUEST_URI} !^/locales/
+    RewriteCond %{REQUEST_URI} !^/locales.json
+    RewriteCond %{REQUEST_URI} !^/admin
+    RewriteCond %{REQUEST_URI} !^/p/
+    RewriteCond %{REQUEST_URI} !^/static/
+    RewriteCond %{REQUEST_URI} !^/pluginfw/
+    RewriteCond %{REQUEST_URI} !^/javascripts/
+    RewriteCond %{REQUEST_URI} !^/socket.io/
+    RewriteCond %{REQUEST_URI} !^/ep/
+    RewriteCond %{REQUEST_URI} !^/minified/
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteCond %{REQUEST_URI} !^/ro/
+    RewriteCond %{REQUEST_URI} !^/error/
+    RewriteCond %{REQUEST_URI} !^/jserror
+    RewriteCond %{REQUEST_URI} !/favicon.ico
+    RewriteCond %{REQUEST_URI} !/robots.txt
+    RewriteRule ^/+(.+)$ http://<%= @params['domain'] || node['fqdn'] %>/p/$1 [L]
+</VirtualHost>
+
+<% if @params[:ssl_enable] -%>
+<VirtualHost *:80>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+</VirtualHost>
+<% end -%>

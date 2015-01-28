@@ -17,15 +17,7 @@
 # limitations under the License.
 #
 
-case node['platform_family']
-  when "debian", "ubuntu"
-    packages = %w{gzip git-core curl python libssl-dev pkg-config build-essential}
-  when "fedora","centos","rhel"
-    packages = %w{gzip git-core curl python openssl-devel}
-  # && yum groupinstall "Development Tools"
-end
-
-packages.each do |p|
+%w{gzip git-core curl python libssl-dev pkg-config build-essential}.each do |p|
   package p
 end
 
@@ -35,119 +27,89 @@ group_id = node['etherpad-lite']['service_gid']
 user_home = node['etherpad-lite']['service_user_home']
 project_path = "#{user_home}/etherpad-lite"
 
-group user do
-  gid group_id
+group 'etherpad' do
+  gid node['etherpad-lite']['etherpad']['gid']
 end
 
-user user do
-  uid user_id
-  gid group_id
-  home user_home
-  supports :managed_home => true
+user 'etherpad' do
+  uid node['etherpad-lite']['etherpad']['uid']
+  gid node['etherpad-lite']['etherpad']['gid']
+  home node['etherpad-lite']['etherpad']['install_dir']
   system true
   comment 'Service user for Etherpad'
 end
 
-git project_path do
-  repository node['etherpad-lite']['etherpad_git_repo_url']
+directory node['etherpad-lite']['etherpad']['install_dir'] do
+  owner 'etherpad'
+  group 'etherpad'
+  mode 00640
+end
+
+git node['etherpad-lite']['etherpad']['install_dir'] do
+  repository node['etherpad-lite']['etherpad']['git_repo']
+  user 'etherpad'
+  revision node['etherpad-lite']['etherpad']['revision']
   action :sync
-  user user
+  notifies :restart, 'service[etherpad]'
 end
 
-template "#{project_path}/settings.json" do
-  owner user
-  group user
-  variables({
-    :title => node['etherpad-lite']['title'],
-    :favicon_url => node['etherpad-lite']['favicon_url'],
-    :ip_address => node['etherpad-lite']['ip_address'],
-    :port_number => node['etherpad-lite']['port_number'],
-    :session_key => node['etherpad-lite']['session_key'],
-    :db_type => node['etherpad-lite']['db_type'],
-    :db_user => node['etherpad-lite']['db_user'],
-    :db_host => node['etherpad-lite']['db_host'],
-    :db_password => node['etherpad-lite']['db_password'],
-    :db_name => node['etherpad-lite']['db_name'],
-    :default_text => node['etherpad-lite']['default_text'],
-    :require_session => node['etherpad-lite']['require_session'],
-    :edit_only => node['etherpad-lite']['edit_only'],
-    :minify => node['etherpad-lite']['minify'],
-    :max_age => node['etherpad-lite']['max_age'],
-    :abiword_path => node['etherpad-lite']['abiword_path'],
-    :require_authentication => node['etherpad-lite']['require_authentication'],
-    :require_authorization => node['etherpad-lite']['require_authorization'],
-    :admin_enabled => node['etherpad-lite']['admin_enabled'],
-    :admin_password => node['etherpad-lite']['admin_password'],
-    :log_level => node['etherpad-lite']['log_level']
-  })
+template "#{node['etherpad-lite']['etherpad']['install_dir']}/settings.json" do
+  owner 'etherpad'
+  group 'etherpad'
+  variables(
+    :etherpad => node['etherpad-lite']['etherpad'],
+    :mysql => node['etherpad-lite']['mysql']
+  )
+  notifies :restart, 'service[etherpad]'
 end
 
-etherpad_api_key = node['etherpad-lite']['etherpad_api_key']
-
-if etherpad_api_key != ''
-  template "#{project_path}/APIKEY.txt" do
-    owner user
-    group user
-    variables({
-      :etherpad_api_key => etherpad_api_key
-    })
-  end
+unless node['etherpad-lite']['etherpad']['api_key']
+  node.set['etherpad-lite']['etherpad']['api_key'] = ([nil]*24).map { ((48..57).to_a+(65..90).to_a+(97..122).to_a).sample.chr }.join
+end
+template "#{node['etherpad-lite']['etherpad']['install_dir']}/APIKEY.txt" do
+  owner 'etherpad'
+  group 'etherpad'
+  mode 00640
+  variables :api_key => node['etherpad-lite']['etherpad']['api_key']
 end
 
-bash 'etherpad-installdeps' do
+execute 'etherpad-installdeps' do
+  command './bin/installDeps.sh > /dev/null'
+  cwd node['etherpad-lite']['etherpad']['install_dir']
   user 'root'
-  cwd project_path
-  code <<-EOH
-  ./bin/installDeps.sh >> #{error_log}
-  EOH
 end
 
-node_modules = project_path + '/node_modules'
-
-directory node_modules do
-  owner user
-  group user
-  mode '770'
+directory "#{node['etherpad-lite']['etherpad']['install_dir']}/node_modules" do
+  owner 'etherpad'
+  group 'etherpad'
+  mode 00770
   recursive true
-  action :create
 end
 
-unless node['etherpad-lite']['plugins'].empty?
-  node['etherpad-lite']['plugins'].each do |plugin|
-    plugin_npm_module = "ep_#{plugin}"
-    nodejs_npm plugin_npm_module do
-      path project_path
-      user user
-      group user
-      action :install
-      notifies :restart, "service[#{node['etherpad-lite']['service_name']}]"
-    end
+node['etherpad-lite']['plugins'].each do |plugin|
+  nodejs_npm "ep_#{plugin}" do
+    path node['etherpad-lite']['etherpad']['install_dir']
+    user 'etherpad'
+    group 'etherpad'
+    action :install
+    notifies :restart, 'service[etherpad]'
   end
 end
 
-log_dir = node['etherpad-lite']['logs_dir']
-access_log = log_dir + '/access.log'
-error_log = log_dir + '/error.log'
-
-directory log_dir do
-  owner 'root'
-  group user
-  mode '2750'
+directory "#{node['etherpad-lite']['etherpad']['install_dir']}/logs" do
+  owner 'etherpad'
+  group 'etherpad'
+  mode 00755
 end
 
-template '/etc/init/etherpad.conf' do
-  source 'upstart.conf.erb'
+template '/etc/init.d/etherpad' do
+  source 'etherpad.init.erb'
   owner 'root'
   group 'root'
-  variables({
-    :etherpad_installation_dir => project_path,
-    :etherpad_service_user => user,
-    :etherpad_access_log => access_log,
-    :etherpad_error_log => error_log,
-  })
+  variables :etherpad => node['etherpad-lite']['etherpad']
 end
 
-service node['etherpad-lite']['service_name'] do
-  provider Chef::Provider::Service::Upstart
+service 'etherpad' do
+  provides [:start, :stop, :restart, :status]
   action :start
 end

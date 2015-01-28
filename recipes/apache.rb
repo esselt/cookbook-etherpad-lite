@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: etherpad-lite
-# Recipe:: apahce
+# Recipe:: apache
 #
 # Copyright 2014, HiST AITeL
 #
@@ -17,22 +17,24 @@
 # limitations under the License.
 #
 
-params = node['etherpad-lite'].dup
-variables = {
-  'vhost_template'  => 'apache.vhost.erb',
-  'vhost_cookbook'  => 'etherpad-lite',
+%w{apache2 apache2::mod_proxy_http}.each do |recipe|
+  include_recipe recipe
+end
 
-  'server_name'     => params['domain'],
-  'server_ip'       => params['ip_address'],
-  'logroot'         => params['logs_dir'],
-  'other'           => {
-    'internal_port' => params['port_number']
-  }
-}
+if node['etherpad-lite']['apache']['ssl_enable']
+  include_recipe 'apache2::mod_ssl'
+end
 
-node.default['lamp-stack']['websites'] = {
-  params['domain'] => variables
-}
+web_app node['etherpad-lite']['apache']['domain'] || node['fqdn'] do
+  template 'web_app.erb'
 
-include_recipe 'lamp-stack::apache'
-include_recipe 'apache2::mod_proxy_http'
+  host node['etherpad-lite']['etherpad']['host']
+  port node['etherpad-lite']['etherpad']['port']
+  domain node['etherpad-lite']['apache']['domain']
+
+  ssl_enable node['etherpad-lite']['apache']['ssl_enable']
+  ssl_cert node['etherpad-lite']['apache']['ssl_cert']
+  ssl_key node['etherpad-lite']['apache']['ssl_key']
+
+  enable true
+end

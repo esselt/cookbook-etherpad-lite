@@ -17,5 +17,4 @@
 # limitations under the License.
 #
 
-node.set['nodejs']['install_method'] = 'package'
-include_recipe "nodejs"
+include_recipe 'nodejs'
