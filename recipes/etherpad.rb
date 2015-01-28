@@ -21,12 +21,6 @@
   package p
 end
 
-user = node['etherpad-lite']['service_user']
-user_id = node['etherpad-lite']['service_uid']
-group_id = node['etherpad-lite']['service_gid']
-user_home = node['etherpad-lite']['service_user_home']
-project_path = "#{user_home}/etherpad-lite"
-
 group 'etherpad' do
   gid node['etherpad-lite']['etherpad']['gid']
 end
@@ -44,7 +38,7 @@ git node['etherpad-lite']['etherpad']['install_dir'] do
   user 'root'
   revision node['etherpad-lite']['etherpad']['revision']
   action :sync
-  notifies :run, 'execute[etherpad-fix-permission]'
+  notifies :run, 'execute[etherpad-fix-permission]', :immediately
   notifies :create, 'directory[etherpad-install-dir]'
   notifies :restart, 'service[etherpad]'
 end
