@@ -109,6 +109,7 @@ template '/etc/init.d/etherpad' do
   source 'etherpad.init.erb'
   owner 'root'
   group 'root'
+  mode 00755
   variables :etherpad => node['etherpad-lite']['etherpad']
 end
 
