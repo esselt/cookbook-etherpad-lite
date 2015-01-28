@@ -110,6 +110,6 @@ template '/etc/init.d/etherpad' do
 end
 
 service 'etherpad' do
-  provides [:start, :stop, :restart, :status]
+  supports [:start, :stop, :restart, :status]
   action :start
 end
