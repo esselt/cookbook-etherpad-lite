@@ -86,7 +86,7 @@ directory "#{node['etherpad-lite']['etherpad']['install_dir']}/node_modules" do
   recursive true
 end
 
-node['etherpad-lite']['plugins'].each do |plugin|
+node['etherpad-lite']['etherpad']['plugins'].each do |plugin|
   nodejs_npm "ep_#{plugin}" do
     path node['etherpad-lite']['etherpad']['install_dir']
     user 'etherpad'
