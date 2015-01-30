@@ -1,5 +1,5 @@
-<VirtualHost *:<%= @params['ssl_enable'] ? '443' : '80' %>>
-    ServerName <%= @params['domain'] || node['fqdn'] %>
+<VirtualHost *:<%= @params[:ssl_enable] ? '443' : '80' %>>
+    ServerName <%= @params[:domain] || node['fqdn'] %>
 
     <Location /server-status>
         SetHandler server-status
@@ -23,12 +23,12 @@
 
     ProxyVia On
     ProxyRequests Off
-    ProxyPass / http://<%= @params['host'] %>:<%= @params['port'] %>/
-    ProxyPassReverse / http://<%= @params['host'] %>:<%= @params['port'] %>/
+    ProxyPass / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
+    ProxyPassReverse / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
     ProxyPreserveHost on
 
     RewriteEngine On
-    RewriteRule /p/*$ http://<%= @params['domain'] || node['fqdn'] %>/ [NC,L]
+    RewriteRule /p/*$ http://<%= @params[:domain] || node['fqdn'] %>/ [NC,L]
     RewriteCond %{REQUEST_URI} !^/locales/
     RewriteCond %{REQUEST_URI} !^/locales.json
     RewriteCond %{REQUEST_URI} !^/admin
@@ -45,7 +45,7 @@
     RewriteCond %{REQUEST_URI} !^/jserror
     RewriteCond %{REQUEST_URI} !/favicon.ico
     RewriteCond %{REQUEST_URI} !/robots.txt
-    RewriteRule ^/+(.+)$ http://<%= @params['domain'] || node['fqdn'] %>/p/$1 [L]
+    RewriteRule ^/+(.+)$ http://<%= @params[:domain] || node['fqdn'] %>/p/$1 [L]
 </VirtualHost>
 
 <% if @params[:ssl_enable] -%>
