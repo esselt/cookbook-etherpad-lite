@@ -17,8 +17,10 @@
     <% end -%>
 
     <Proxy *>
-        AddDefaultCharset off
-        Require all granted
+        Options FollowSymLinks MultiViews
+        AllowOverride All
+        Order allow,deny
+        allow from all
     </Proxy>
 
     ProxyVia On
