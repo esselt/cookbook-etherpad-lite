@@ -29,6 +29,8 @@
     ProxyPassReverse / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
     ProxyPreserveHost on
 
+    SetEnv force-proxy-request-1.0 1
+    SetEnv proxy-nokeepalive 1
     SetEnv proxy-initial-not-pooled 1
 </VirtualHost>
 
