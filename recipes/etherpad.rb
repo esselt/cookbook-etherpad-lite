@@ -38,15 +38,14 @@ git node['etherpad-lite']['etherpad']['install_dir'] do
   user 'root'
   revision node['etherpad-lite']['etherpad']['revision']
   action :sync
+  notifies :run, 'execute[etherpad-installdeps]', :immediately
   notifies :run, 'execute[etherpad-fix-permission]', :immediately
-  notifies :create, 'directory[etherpad-install-dir]'
   notifies :restart, 'service[etherpad]'
 end
 
 execute 'etherpad-fix-permission' do
   command 'chown etherpad:etherpad -R *'
   cwd node['etherpad-lite']['etherpad']['install_dir']
-  action :nothing
 end
 
 directory 'etherpad-install-dir' do
@@ -54,6 +53,30 @@ directory 'etherpad-install-dir' do
   owner 'etherpad'
   group 'etherpad'
   mode 00755
+end
+
+execute 'etherpad-installdeps' do
+  command './bin/installDeps.sh > /dev/null'
+  cwd node['etherpad-lite']['etherpad']['install_dir']
+  user 'root'
+  action :nothing
+end
+
+directory "#{node['etherpad-lite']['etherpad']['install_dir']}/node_modules" do
+  owner 'etherpad'
+  group 'etherpad'
+  mode 00770
+  recursive true
+end
+
+node['etherpad-lite']['etherpad']['plugins'].each do |plugin|
+  nodejs_npm "ep_#{plugin}" do
+    path node['etherpad-lite']['etherpad']['install_dir']
+    user 'etherpad'
+    group 'etherpad'
+    action :install
+    notifies :restart, 'service[etherpad]'
+  end
 end
 
 template "#{node['etherpad-lite']['etherpad']['install_dir']}/settings.json" do
@@ -76,29 +99,6 @@ template "#{node['etherpad-lite']['etherpad']['install_dir']}/APIKEY.txt" do
   variables :api_key => node['etherpad-lite']['etherpad']['api_key']
 end
 
-execute 'etherpad-installdeps' do
-  command './bin/installDeps.sh > /dev/null'
-  cwd node['etherpad-lite']['etherpad']['install_dir']
-  user 'root'
-end
-
-directory "#{node['etherpad-lite']['etherpad']['install_dir']}/node_modules" do
-  owner 'etherpad'
-  group 'etherpad'
-  mode 00770
-  recursive true
-end
-
-node['etherpad-lite']['etherpad']['plugins'].each do |plugin|
-  nodejs_npm "ep_#{plugin}" do
-    path node['etherpad-lite']['etherpad']['install_dir']
-    user 'etherpad'
-    group 'etherpad'
-    action :install
-    notifies :restart, 'service[etherpad]'
-  end
-end
-
 directory "#{node['etherpad-lite']['etherpad']['install_dir']}/logs" do
   owner 'etherpad'
   group 'etherpad'
@@ -116,4 +116,14 @@ end
 service 'etherpad' do
   supports [:start, :stop, :restart, :status]
   action :start
+end
+
+log_file = "#{node['etherpad-lite']['etherpad']['install_dir']}/logs/etherpad.log"
+logrotate_app 'etherpad' do
+  path log_file
+  frequency 'daily'
+  rotate 7
+  create '644 etherpad etherpad'
+  options ['missingok', 'compress', 'notifempty']
+  postrotate 'service etherpad restart'
 end

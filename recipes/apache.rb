@@ -25,16 +25,24 @@ if node['etherpad-lite']['apache']['ssl_enable']
   include_recipe 'apache2::mod_ssl'
 end
 
-web_app node['etherpad-lite']['apache']['domain'] || node['fqdn'] do
+settings = []
+settings['host'] = node['etherpad-lite']['etherpad']['host']
+settings['port'] = node['etherpad-lite']['etherpad']['port']
+settings['domain'] = node['etherpad-lite']['apache']['domain']
+settings['ssl_enable'] = node['etherpad-lite']['apache']['ssl_enable']
+settings['ssl_cert'] = node['etherpad-lite']['apache']['ssl_cert']
+settings['ssl_key'] = node['etherpad-lite']['apache']['ssl_key']
+
+web_app settings['domain'] || node['fqdn'] do
   template 'web_app.erb'
 
-  host node['etherpad-lite']['etherpad']['host']
-  port node['etherpad-lite']['etherpad']['port']
-  domain node['etherpad-lite']['apache']['domain']
+  host settings['host']
+  port settings['port']
+  domain settings['domain']
 
-  ssl_enable node['etherpad-lite']['apache']['ssl_enable']
-  ssl_cert node['etherpad-lite']['apache']['ssl_cert']
-  ssl_key node['etherpad-lite']['apache']['ssl_key']
+  ssl_enable settings['ssl_enable']
+  ssl_cert settings['ssl_cert']
+  ssl_key settings['ssl_key']
 
   enable true
 end

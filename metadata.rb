@@ -16,6 +16,6 @@ recipe 'etherpad-lite::nodejs', 'Installs NodeJS'
   supports os
 end
 
-%w(apache2 mysql database nodejs).each do |pkg|
+%w(apache2 mysql database nodejs logrotate).each do |pkg|
   depends pkg
 end
