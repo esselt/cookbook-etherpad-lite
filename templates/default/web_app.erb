@@ -28,6 +28,8 @@
     ProxyPass / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
     ProxyPassReverse / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
     ProxyPreserveHost on
+
+    SetEnv proxy-initial-not-pooled 1
 </VirtualHost>
 
 <% if @params[:ssl_enable] -%>
