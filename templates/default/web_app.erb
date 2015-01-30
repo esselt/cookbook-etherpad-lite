@@ -28,26 +28,6 @@
     ProxyPass / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
     ProxyPassReverse / http://<%= @params[:host] %>:<%= @params[:port].to_s %>/
     ProxyPreserveHost on
-
-    RewriteEngine On
-    RewriteRule /p/*$ http://<%= @params[:domain] || node['fqdn'] %>/ [NC,L]
-    RewriteCond %{REQUEST_URI} !^/locales/
-    RewriteCond %{REQUEST_URI} !^/locales.json
-    RewriteCond %{REQUEST_URI} !^/admin
-    RewriteCond %{REQUEST_URI} !^/p/
-    RewriteCond %{REQUEST_URI} !^/static/
-    RewriteCond %{REQUEST_URI} !^/pluginfw/
-    RewriteCond %{REQUEST_URI} !^/javascripts/
-    RewriteCond %{REQUEST_URI} !^/socket.io/
-    RewriteCond %{REQUEST_URI} !^/ep/
-    RewriteCond %{REQUEST_URI} !^/minified/
-    RewriteCond %{REQUEST_URI} !^/api/
-    RewriteCond %{REQUEST_URI} !^/ro/
-    RewriteCond %{REQUEST_URI} !^/error/
-    RewriteCond %{REQUEST_URI} !^/jserror
-    RewriteCond %{REQUEST_URI} !/favicon.ico
-    RewriteCond %{REQUEST_URI} !/robots.txt
-    RewriteRule ^/+(.+)$ http://<%= @params[:domain] || node['fqdn'] %>/p/$1 [L]
 </VirtualHost>
 
 <% if @params[:ssl_enable] -%>
