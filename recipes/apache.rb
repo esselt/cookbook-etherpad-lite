@@ -32,7 +32,7 @@ ssl_enable = node['etherpad-lite']['apache']['ssl_enable']
 ssl_cert = node['etherpad-lite']['apache']['ssl_cert']
 ssl_key = node['etherpad-lite']['apache']['ssl_key']
 
-web_app settings['domain'] || node['fqdn'] do
+web_app domain || node['fqdn'] do
   template 'web_app.erb'
 
   host host
