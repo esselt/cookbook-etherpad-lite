@@ -125,5 +125,5 @@ logrotate_app 'etherpad' do
   rotate 7
   create '644 etherpad etherpad'
   options ['missingok', 'compress', 'notifempty']
-  postrotate 'service etherpad restart'
+  postrotate 'service etherpad restart > /dev/null'
 end
